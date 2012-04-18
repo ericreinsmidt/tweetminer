@@ -14,7 +14,7 @@
 		Call script from command line in the format:
 		php tweetminer.php <search terms> <start date> <end date> <time window>
 		<search term> must be in URL friendly format, e.g. "My new search" should be passed as My+new+search
-		<start date> and <end date> must be passed in unix timestamp format, e.g. in seconds since 1970.01.01
+		<start date> and <end date> must be passed as month/day/year or month/day/year@hour:minute:second in GMT
 		<time window> is passed in seconds. Only 1000 results are availble for each window, so smaller
 			time window values ensure more complete results
 
@@ -22,31 +22,73 @@
 		The script will create a file named tweets/<search terms>.txt
 
 	Example:
-		php tweetminer.php easter+egg 1330372920 1330382920 3600
+		php tweetminer.php easter+egg 2/27/2012 2/27/2012@14:35:11 7200
 		This will grab all tweets with the words "easter" and "egg" from
-			02/27/12 @ 2:02:00pm EST to	02/27/12 @ 4:48:40pm EST
-			using a one hour time window.
+			2/27/2012 @ 00:00:00 AM GMT to 2/27/2012 @ 2:35:11 PM GMT
+			using a two hour time window.
 
 	*/
 
+	//////////////////////////////////////////////
+	/*          Set server variables            */
+	//////////////////////////////////////////////
+	
 	// Suppress DateTime warnings
 	date_default_timezone_set(@date_default_timezone_get());
 
 	// set allowed script execution time in seconds
 	ini_set('max_execution_time', 3600);
 
+	//////////////////////////////////////////////
+	/*         Store arguments in vars          */
+	//////////////////////////////////////////////
+	
 	// grab <search term> from args
 	$search_term = $_SERVER['argv'][1];
 
 	// grab <start date> from args
-	$mintime = $_SERVER['argv'][2];
+	$raw_start_date = explode("@", $_SERVER['argv'][2]);
 
 	// grab <end date> from args
-	$maxtime = $_SERVER['argv'][3];
+	$raw_end_date = explode("@", $_SERVER['argv'][3]);
 
 	// grab <time window> from args
 	$timewindow = $_SERVER['argv'][4];
 
+	//////////////////////////////////////////////
+	/*        Process dates to timestamp        */
+	//////////////////////////////////////////////
+	
+	// split date and time from <start date>
+	$date = explode("/", $raw_start_date[0]);
+
+	// if hour:minute:second provided use, else set to midnight
+	if (isset($raw_start_date[1])) {
+		$time = explode(":", $raw_start_date[1]);
+	} else {
+		$time = array(0,0,0);
+	}
+
+	// create starting unix timestamp for API request
+	$mintime = mktime($time[0],$time[1],$time[2],$date[0],$date[1],$date[2]);
+
+	// split date and time from <end date>
+	$date = explode("/", $raw_end_date[0]);
+
+	// if hour:minute:second provided use, else set to midnight
+	if (isset($raw_end_date[1])) {
+		$time = explode(":", $raw_end_date[1]);
+	} else {
+		$time = array(0,0,0);
+	}
+
+	// create ending unix timestamp for API request
+	$maxtime = mktime($time[0],$time[1],$time[2],$date[0],$date[1],$date[2]);
+	
+	//////////////////////////////////////////////
+	/*           Set beginning vars             */
+	//////////////////////////////////////////////
+	
 	// boolean flag for when all tweets are mined
 	$done = false;
 
@@ -64,6 +106,10 @@
 
     // track number of page requests, only 10 allowed per time window
     $num_pages = 0;
+    
+    //////////////////////////////////////////////
+    /*                Start mining              */
+    //////////////////////////////////////////////
     
     // continue until done
     while(!$done)

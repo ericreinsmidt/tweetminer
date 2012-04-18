@@ -9,27 +9,39 @@
 
 	Usage:
 		Call script from command line in the format:
-		php processor.php <filename>
+		php processor.php tweets/<filename>
 		<filename> is passed as the entire filename, e.g. somefile.txt
 
 	Output:
 		The script will create a file name tweets/<filename>_processed.txt
 
 	Example:
-		php processor.php easter+egg.txt
+		php processor.php tweets/easter+egg.txt
 
 	*/
+
+	//////////////////////////////////////////////
+	/*          Set server variables            */
+	//////////////////////////////////////////////
 
 	// Suppress DateTime warnings
 	date_default_timezone_set(@date_default_timezone_get());
 
+	//////////////////////////////////////////////
+	/*         Store arguments in vars          */
+	//////////////////////////////////////////////
+
 	// grab <filename> from args
-	$filein =  "tweets/".$_SERVER['argv'][1];
+	$filein =  $_SERVER['argv'][1];
 
 	// create filename for processed file
-	$fileout = "tweets/".$_SERVER['argv'][1].'_processed.txt';
+	$fileout = strtok($_SERVER['argv'][1], '.').'_processed.txt';
 	if(!file_exists(dirname($fileout)))
 	    mkdir(dirname($fileout), 0777, true);
+
+	//////////////////////////////////////////////
+	/*            Start processing              */
+	//////////////////////////////////////////////
 
 	// open file handler
 	$handle = fopen($filein, "r");

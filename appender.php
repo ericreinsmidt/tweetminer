@@ -13,15 +13,23 @@
 		<source file> and <destination file> are passed as filename with extension.
 
 	Output:
-		The script will create a file name tweets/<destination file>.txt
+		The script will create a file name tweets/<destination file>
 
 	Example:
-		php appender.php easter+egg.txt_processed.txt huge_chunk_of_files.txt
+		php appender.php easter+egg_processed.txt huge_chunk_of_files.txt
 
 	*/
 
+	//////////////////////////////////////////////
+	/*          Set server variables            */
+	//////////////////////////////////////////////
+
 	// Suppress DateTime warnings
 	date_default_timezone_set(@date_default_timezone_get());
+	
+	//////////////////////////////////////////////
+	/*         Store arguments in vars          */
+	//////////////////////////////////////////////
 
 	// grab <source file> from args
 	$filein =  "tweets/".$_SERVER['argv'][1];
@@ -30,6 +38,10 @@
 	$fileout = "tweets/".$_SERVER['argv'][2];
 	if(!file_exists(dirname($fileout)))
 	    mkdir(dirname($fileout), 0777, true);
+
+	//////////////////////////////////////////////
+	/*            Start appending               */
+	//////////////////////////////////////////////
 
 	// open file dba_handlers()
 	$handle = fopen($filein, "r");
